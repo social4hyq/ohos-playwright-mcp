@@ -1,10 +1,10 @@
 {
-  "name": "arkweb-cdp-mcp",
+  "name": "ohos-playwright-mcp",
   "version": "0.2.0",
-  "description": "MCP server that drives HarmonyOS ArkWeb via playwright-core over CDP. 56 tools: navigation, input, network, cookies, storage, snapshot, tracing.",
+  "description": "MCP server for HarmonyOS / OpenHarmony ArkWeb — playwright-core over CDP. 61 tools: navigation, input, network, cookies, storage, snapshot, tracing. The ohos counterpart of @playwright/mcp.",
   "type": "module",
   "bin": {
-    "arkweb-cdp-mcp": "./server.mjs"
+    "ohos-playwright-mcp": "server.mjs"
   },
   "files": [
     "server.mjs",
@@ -28,11 +28,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/social4hyq/arkweb-cdp-mcp.git"
+    "url": "git+https://github.com/social4hyq/ohos-playwright-mcp.git"
   },
-  "homepage": "https://github.com/social4hyq/arkweb-cdp-mcp#readme",
+  "homepage": "https://github.com/social4hyq/ohos-playwright-mcp#readme",
   "bugs": {
-    "url": "https://github.com/social4hyq/arkweb-cdp-mcp/issues"
+    "url": "https://github.com/social4hyq/ohos-playwright-mcp/issues"
   },
   "engines": {
     "node": ">=24"
@@ -40,5 +40,8 @@
   "peerDependencies": {
     "ohos-playwright": ">=0.2.2",
     "playwright-core": ">=1.59.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

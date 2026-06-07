@@ -1,8 +1,8 @@
-# arkweb-cdp-mcp
+# ohos-playwright-mcp
 
-MCP server that drives **HarmonyOS ArkWeb** (Chromium 132-based) via [`playwright-core`](https://www.npmjs.com/package/playwright-core) over the Chrome DevTools Protocol.
+MCP server for **HarmonyOS / OpenHarmony ArkWeb** (Chromium 132-based) — the `ohos` counterpart of [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp).
 
-Bootstrap (hdc connect → `aa start` ArkWeb → `hdc fport` → CDP endpoint) is delegated to [`ohos-playwright`](https://github.com/social4hyq/ohos-playwright). This package focuses on exposing browser automation as MCP tools.
+Drives ArkWeb through [`playwright-core`](https://www.npmjs.com/package/playwright-core) over the Chrome DevTools Protocol. Bootstrap (hdc connect → `aa start` → `hdc fport` → CDP endpoint) is delegated to [`ohos-playwright`](https://github.com/social4hyq/ohos-playwright).
 
 ## Why this exists
 
@@ -11,18 +11,18 @@ ArkWeb on HarmonyOS denies `AF_UNIX` socket creation in its sandbox, which break
 ## Install
 
 ```bash
-npm i -g arkweb-cdp-mcp ohos-playwright playwright-core
+npm i -g ohos-playwright-mcp ohos-playwright playwright-core
 ```
 
-Node ≥ 22. `hdc` must be on `PATH` and an OpenHarmony / HarmonyOS device reachable.
+Node ≥ 24. `hdc` must be on `PATH` and an OpenHarmony / HarmonyOS device reachable.
 
 ## MCP client config
 
 ```json
 {
   "mcpServers": {
-    "arkweb": {
-      "command": "arkweb-cdp-mcp"
+    "ohos": {
+      "command": "ohos-playwright-mcp"
     }
   }
 }
@@ -33,7 +33,7 @@ If the peer deps live in a non-standard location, point at them explicitly:
 ```json
 {
   "mcpServers": {
-    "arkweb": {
+    "ohos": {
       "command": "node",
       "args": ["/abs/path/to/server.mjs"],
       "env": {
@@ -51,7 +51,7 @@ Other env vars:
 - `OHOS_PW_INFO_PATH` — where the CDP endpoint cache lives (default: `<tmpdir>/ohos-playwright-cdp.json`).
 - Any `OHOS_PW_*` vars consumed by `ohos-playwright/setup` (device serial, browser bundle name, port, etc.) — see that project's README.
 
-## Tools (56)
+## Tools (61)
 
 **Navigation** — `navigate`, `navigate_back`, `navigate_forward`, `reload`, `wait`, `wait_for`
 
@@ -82,6 +82,7 @@ Each tool's JSON schema is published via standard MCP `tools/list`.
 - `screenshot` uses raw CDP `Page.captureScreenshot` to skip Playwright's font-wait, which hangs on some ArkWeb pages.
 - `snapshot` calls `Accessibility.getFullAXTree` via a fresh CDP session because Playwright 1.x removed `page.accessibility`.
 - `tab_new` uses the `/json/new` HTTP endpoint with `PUT` (ArkWeb rejects the playwright `context.newPage()` path).
+- `navigate_back` / `navigate_forward` use `waitUntil: 'commit'` because ArkWeb doesn't re-fire `load` for cached history navigation.
 - ArkWeb tabs can occasionally crash into `arkweb-error://webdata/` under heavy CDP load. The server auto-recovers by spawning a blank tab.
 
 ## License
