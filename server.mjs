@@ -33,7 +33,9 @@ const INFO_PATH     = process.env.OHOS_PW_INFO_PATH ?? `${tmpdir()}/ohos-playwri
 let cdpEndpoint = null
 
 await import(REGISTER_PATH)
-const { chromium } = await import(PW_CORE_PATH)
+const pwModule = await import(PW_CORE_PATH)
+const chromium = pwModule.chromium ?? pwModule.default?.chromium
+if (!chromium) throw new Error(`playwright-core loaded but no chromium export (keys: ${Object.keys(pwModule).join(',')})`)
 
 const log = (...a) => console.error('[arkweb-cdp-mcp]', ...a)
 
