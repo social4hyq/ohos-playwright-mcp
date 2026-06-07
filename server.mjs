@@ -183,11 +183,11 @@ tool('navigate', 'Navigate the current page to a URL. Waits for load by default.
 
 tool('navigate_back', 'Go back in history on the current page.',
   sObj({}),
-  async () => { const page = await getPage(); await page.goBack(); return `back → ${page.url()}` })
+  async () => { const page = await getPage(); await page.goBack({ waitUntil: 'commit', timeout: 5000 }).catch(() => {}); return `back → ${page.url()}` })
 
 tool('navigate_forward', 'Go forward in history on the current page.',
   sObj({}),
-  async () => { const page = await getPage(); await page.goForward(); return `forward → ${page.url()}` })
+  async () => { const page = await getPage(); await page.goForward({ waitUntil: 'commit', timeout: 5000 }).catch(() => {}); return `forward → ${page.url()}` })
 
 tool('reload', 'Reload the current page.',
   sObj({}),

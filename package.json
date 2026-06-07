@@ -35,10 +35,10 @@
     "url": "https://github.com/social4hyq/arkweb-cdp-mcp/issues"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "peerDependencies": {
-    "ohos-playwright": ">=0.1.0",
+    "ohos-playwright": ">=0.2.2",
     "playwright-core": ">=1.59.0"
   }
 }
