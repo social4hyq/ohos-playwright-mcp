@@ -1,6 +1,6 @@
 {
   "name": "ohos-playwright-mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "MCP server for HarmonyOS / OpenHarmony ArkWeb — playwright-core over CDP. 61 tools: navigation, input, network, cookies, storage, snapshot, tracing. The ohos counterpart of @playwright/mcp.",
   "type": "module",
   "bin": {
@@ -38,7 +38,7 @@
     "node": ">=24"
   },
   "peerDependencies": {
-    "ohos-playwright": ">=0.2.2",
+    "ohos-playwright": ">=0.2.3",
     "playwright-core": ">=1.59.0"
   },
   "publishConfig": {
