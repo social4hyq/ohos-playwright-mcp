@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.tmp/
+_smoke*/
+_smoke*.json
+*.pdf
+*.zip
+.DS_Store
