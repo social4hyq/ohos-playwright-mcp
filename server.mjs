@@ -7,7 +7,7 @@
 
 import { createRequire } from 'node:module'
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { tmpdir } from 'node:os'
 
 const require = createRequire(import.meta.url)
@@ -223,8 +223,10 @@ tool('evaluate', 'Evaluate JavaScript on the page. `expression` may be an expres
   async ({ expression }) => withRetryOnNavigation(async () => {
     const page = await getPage()
     const looksLikeFn = /^\s*(\([^)]*\)\s*=>|async\s|function\b)/.test(expression)
-    const r = await page.evaluate(looksLikeFn ? expression : `() => (${expression})`)
-    return JSON.stringify(r, null, 2)
+    const looksLikeIIFE = /^\s*\(\s*(\(|async\s|function\b)/.test(expression)
+    const shouldInvoke = looksLikeFn && !looksLikeIIFE
+    const r = await page.evaluate(shouldInvoke ? `(${expression})()` : expression)
+    return JSON.stringify(r, null, 2) ?? 'undefined'
   }))
 
 async function withRetryOnNavigation(fn) {
@@ -245,13 +247,14 @@ tool('get_html', 'Return document.documentElement.outerHTML.',
   sObj({}),
   async () => withRetryOnNavigation(async () => (await getPage()).content()))
 
-tool('screenshot', 'Take a PNG screenshot. If `path` given, save to disk; else return base64 image. Uses raw CDP to skip Playwright font-wait (which hangs on some ArkWeb pages).',
+tool('screenshot', 'Take a PNG screenshot. Default saves to a tmp path (ArkWeb resolutions often exceed MCP clients\' inline-image size limit). Pass `path` to choose location, or `inline: true` to return base64. Uses raw CDP to skip Playwright font-wait (which hangs on some ArkWeb pages).',
   sObj({
-    path: sStr('save to this path instead of returning inline'),
+    path: sStr('save to this path (overrides default tmp location)'),
     full_page: sBool('capture full scrollable page', false),
     selector: sStr('limit to an element matching this selector'),
+    inline: sBool('return base64 image instead of saving to disk (may exceed client size limits)', false),
   }),
-  async ({ path, full_page, selector }) => {
+  async ({ path, full_page, selector, inline }) => {
     const page = await getPage()
     let buf
     if (selector) {
@@ -263,12 +266,13 @@ tool('screenshot', 'Take a PNG screenshot. If `path` given, save to disk; else r
         buf = Buffer.from(r.data, 'base64')
       } finally { await session.detach().catch(() => {}) }
     }
-    if (path) {
-      mkdirSync(dirname(path), { recursive: true })
-      writeFileSync(path, buf)
-      return `saved ${buf.length} bytes to ${path}`
+    if (inline) {
+      return { content: [{ type: 'image', data: buf.toString('base64'), mimeType: 'image/png' }] }
     }
-    return { content: [{ type: 'image', data: buf.toString('base64'), mimeType: 'image/png' }] }
+    const outPath = path ?? join(tmpdir(), `ohos-screenshot-${Date.now()}.png`)
+    mkdirSync(dirname(outPath), { recursive: true })
+    writeFileSync(outPath, buf)
+    return `saved ${buf.length} bytes to ${outPath}`
   })
 
 // -------------------- tabs/pages --------------------
@@ -704,7 +708,7 @@ async function handle(msg) {
   try {
     switch (msg.method) {
       case 'initialize':
-        return { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'arkweb-cdp-mcp', version: '0.2.0' } }
+        return { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'ohos-playwright-mcp', version: '0.2.3' } }
       case 'notifications/initialized':
         return null
       case 'tools/list':
