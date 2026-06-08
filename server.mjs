@@ -708,7 +708,7 @@ async function handle(msg) {
   try {
     switch (msg.method) {
       case 'initialize':
-        return { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'ohos-playwright-mcp', version: '0.2.3' } }
+        return { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'ohos-playwright-mcp', version: '0.2.4' } }
       case 'notifications/initialized':
         return null
       case 'tools/list':
