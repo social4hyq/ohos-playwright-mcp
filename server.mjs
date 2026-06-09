@@ -7,7 +7,7 @@
 
 import { createRequire } from 'node:module'
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve as resolvePath } from 'node:path'
 import { tmpdir } from 'node:os'
 
 const require = createRequire(import.meta.url)
@@ -30,6 +30,19 @@ const SETUP_PATH    = resolveOrThrow('ohos-playwright/setup',    'ARKWEB_OHOS_PW
 const PW_CORE_PATH  = resolveOrThrow('playwright-core',          'ARKWEB_PW_CORE')
 const INFO_PATH     = process.env.OHOS_PW_INFO_PATH ?? `${tmpdir()}/ohos-playwright-cdp.json`
 
+function safeOutputPath(inputPath) {
+  // 拒绝包含 .. 的路径，防止路径穿越
+  if (inputPath.includes('..')) {
+    throw new Error(`path traversal rejected: "${inputPath}" contains ".."`)
+  }
+  const resolved = resolvePath(inputPath)
+  const cwd = process.cwd()
+  if (!resolved.startsWith(tmpdir()) && !resolved.startsWith(cwd)) {
+    throw new Error(`output path must be within current directory or temp directory: ${resolved}`)
+  }
+  return resolved
+}
+
 let cdpEndpoint = null
 
 await import(REGISTER_PATH)
@@ -47,7 +60,6 @@ let bootstrapPromise = null
 const consoleBuffer = []          // { pageUrl, type, text, ts }
 const networkRequests = []        // { id, url, method, status, requestHeaders, responseHeaders, postData, fromCache, durationMs }
 const networkById = new Map()
-const dialogQueue = []            // pending dialog handlers; auto-dismiss with default
 let dialogPolicy = { action: 'dismiss', promptText: '' }
 const routeHandlers = new Map()   // pattern -> {handler, status: 'active', hits: 0}
 
@@ -269,7 +281,7 @@ tool('screenshot', 'Take a PNG screenshot. Default saves to a tmp path (ArkWeb r
     if (inline) {
       return { content: [{ type: 'image', data: buf.toString('base64'), mimeType: 'image/png' }] }
     }
-    const outPath = path ?? join(tmpdir(), `ohos-screenshot-${Date.now()}.png`)
+    const outPath = path ? safeOutputPath(path) : join(tmpdir(), `ohos-screenshot-${Date.now()}.png`)
     mkdirSync(dirname(outPath), { recursive: true })
     writeFileSync(outPath, buf)
     return `saved ${buf.length} bytes to ${outPath}`
@@ -676,6 +688,7 @@ tool('pdf_save', 'Save the current page as PDF (headless-only in Chrome — may 
   sObj({ path: sStr() }, ['path']),
   async ({ path }) => {
     const page = await getPage()
+    path = safeOutputPath(path)
     mkdirSync(dirname(path), { recursive: true })
     await page.pdf({ path })
     return `saved PDF to ${path}`
@@ -693,6 +706,7 @@ tool('stop_tracing', 'Stop tracing and save the .zip to `path`.',
   sObj({ path: sStr() }, ['path']),
   async ({ path }) => {
     await getPage()
+    path = safeOutputPath(path)
     mkdirSync(dirname(path), { recursive: true })
     await context.tracing.stop({ path })
     return `trace saved to ${path}`
