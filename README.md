@@ -11,10 +11,10 @@ ArkWeb on HarmonyOS denies `AF_UNIX` socket creation in its sandbox, which break
 ## Install
 
 ```bash
-npm i -g ohos-playwright-mcp ohos-playwright playwright-core
+npm i -g ohos-playwright-mcp ohos-playwright@^0.6.0 playwright-core
 ```
 
-Node ≥ 24. `hdc` must be on `PATH` and an OpenHarmony / HarmonyOS device reachable.
+Requires **Node ≥ 24** and `hdc` on `PATH`. Requires **ohos-playwright ≥ 0.6.0**.
 
 ## MCP client config
 
